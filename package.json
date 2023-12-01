@@ -1,0 +1,24 @@
+{
+  "name": "discordmusicbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/voice": "^0.16.1",
+    "discord.js": "^14.14.1",
+    "distube": "^4.1.1",
+    "dotenv": "^16.3.1",
+    "libsodium-wrappers": "^0.7.13"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
