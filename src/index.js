@@ -45,6 +45,8 @@ const getToken = async () => {
   }
 }
 const getSpotifyPlaylist = async (playlistURL) => {
+  // console.log("getting spotify playlist")
+  // console.log(playlistURL)
   const token = await getToken();
   try {
     const res = await fetch(playlistURL, {
@@ -65,7 +67,7 @@ const getSpotifyPlaylist = async (playlistURL) => {
       }
       songArr.push(basicSongInfo)
     }
-    console.log(songArr)
+    // console.log(songArr)
     return songArr
   } catch (error) {
     console.error(`error occurred when fetching spotify playlist: ${error}`)
@@ -73,26 +75,24 @@ const getSpotifyPlaylist = async (playlistURL) => {
 }
 client.on('ready', () => {
   console.log("ready")
-  getSpotifyPlaylist("https://api.spotify.com/v1/playlists/2RlXDmBCR6vRXsmKmligq1")
-  console.log("done")
-
 })
-let inCorrectChannel = false;
+
 
 client.on('messageCreate',async (message) => {
-  if (message.author.bot) return;
+  // if (message.author.bot) return;
   let prefix = "#"
   if (message.content[0] === prefix) {
     const messageArr = message.content.split(":");
     const cmd = messageArr[0];
-    const song = messageArr[1];
-    if (cmd === ("#play")) {
+    const utility = messageArr[1];
 
-      client.Distube.play(message.member.voice.channel, song, {
+    if (cmd === ("#play")) {
+      client.Distube.play(message.member.voice.channel, utility, {
         member: message.member,
         textChannel: message.channel,
         message
       })
+      message.textChannel.send(`Added ${song.name} - to the queue by ${song.user}.`)
     } else if (cmd === ("#pause")) {
       client.Distube.pause(message)
     } else if (cmd === ("#resume")) {
@@ -101,11 +101,38 @@ client.on('messageCreate',async (message) => {
       client.Distube.skip(message)
     } else if (cmd === "#shuffle") {
       client.Distube.shuffle(message)
-    }
+    } else if (cmd === "#spotify") {
+      let apiLink = "https://api.spotify.com/v1/playlists/" + utility.trim();
+      const songArr = await getSpotifyPlaylist(apiLink);
+      let limit = 20;
+      if (songArr.length > limit) message.channel.send(`Does not allow playlist longer than ${limit} songs, go make a fucken shorter playlist we not gonna be here for that long`)
+      else {
+        message.channel.send(`Playing spotify playlist: ${apiLink}`)
+        for (let i = 0; i < songArr.length; i++) {
+          let info = songArr[i];
+          const songsID = `${info.songTitle} by ${info.artist[0]}`
+          client.Distube.play(message.member.voice.channel, songsID, {
+            member: message.member,
+            textChannel: message.channel,
+            message
+          })
+          message.channel.send("I am being annoying")
+        }
+      }
+    } else if (cmd === "#getQueue") {
+      const queue = client.Distube.getQueue(message);
+      message.channel.send('Current queue:\n' + queue.songs.map((song, id) =>
+          `**${id+1}**. [${song.name}](${song.url}) - \`${song.formattedDuration}\``
+      ).join("\n"));
+    } 
   }
 })
-client.Distube.on("playSong", (queue, song) => {
-  console.log(song.name)
-  queue.textChannel.send(`currently playing ${song.name}`)
-})
+
+// client.Distube.on("playSong", (queue, song) => {
+//   queue.textChannel.send(`currently playing ${song.name}`)
+// })
+
+// client.Distube.on("addSong", (queue, song) => {
+//   queue.textChannel.send(`Added ${song.name} - to the queue by ${song.user}.`)
+// })
 client.login(process.env.TOKEN)
