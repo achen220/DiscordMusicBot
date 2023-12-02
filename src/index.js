@@ -80,12 +80,17 @@ client.on('ready', () => {
 
 client.on('messageCreate',async (message) => {
   // if (message.author.bot) return;
+  console.log(message.member.voice.channel)
+
   let prefix = "#"
   if (message.content[0] === prefix) {
     const messageArr = message.content.split(":");
     const cmd = messageArr[0];
     const utility = messageArr[1];
-
+    if (message.member.voice.channel === null) {
+      message.channel.send("you need to be in a voice channel in order to add the bot dummy")
+      return;
+    }
     if (cmd === ("#play")) {
       client.Distube.play(message.member.voice.channel, utility, {
         member: message.member,
@@ -122,7 +127,6 @@ client.on('messageCreate',async (message) => {
             textChannel: message.channel,
             message
           })
-          message.channel.send("I am being annoying")
         }
       }
     } else if (cmd === "#getQueue") {
