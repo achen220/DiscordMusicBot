@@ -92,16 +92,22 @@ client.on('messageCreate',async (message) => {
         textChannel: message.channel,
         message
       })
-      message.textChannel.send(`Added ${song.name} - to the queue by ${song.user}.`)
+      message.channel.send(`Added ${utility} - to the queue`)
     } else if (cmd === ("#pause")) {
       client.Distube.pause(message)
     } else if (cmd === ("#resume")) {
       client.Distube.resume(message)
     } else if (cmd === "#skip") {
-      client.Distube.skip(message)
-    } else if (cmd === "#shuffle") {
-      client.Distube.shuffle(message)
-    } else if (cmd === "#spotify") {
+      const queue = client.Distube.getQueue(message);
+      if (queue.songs.length <= 1) message.channel.send("No next song to skip to")
+      else {
+        client.Distube.skip(message)
+      }
+    } 
+    // else if (cmd === "#shuffle") {
+    //   client.Distube.shuffle(message)
+    // } 
+      else if (cmd === "#spotify") {
       let apiLink = "https://api.spotify.com/v1/playlists/" + utility.trim();
       const songArr = await getSpotifyPlaylist(apiLink);
       let limit = 20;
@@ -124,7 +130,9 @@ client.on('messageCreate',async (message) => {
       message.channel.send('Current queue:\n' + queue.songs.map((song, id) =>
           `**${id+1}**. [${song.name}](${song.url}) - \`${song.formattedDuration}\``
       ).join("\n"));
-    } 
+    } else if (cmd === "#commands") {
+      message.channel.send("no i will not give you the commands")
+    }
   }
 })
 
