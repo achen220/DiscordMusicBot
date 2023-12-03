@@ -73,18 +73,22 @@ const getSpotifyPlaylist = async (playlistURL) => {
     console.error(`error occurred when fetching spotify playlist: ${error}`)
   }
 }
+const getSpotifyAlbum = async () => {
+
+}
 client.on('ready', () => {
   console.log("ready")
 })
 
+client.login(process.env.TOKEN)
 
 client.on('messageCreate',async (message) => {
   // if (message.author.bot) return;
-  console.log(message.member.voice.channel)
 
   let prefix = "#"
   if (message.content[0] === prefix) {
-    const messageArr = message.content.split(":");
+    const messageArr = message.content.split(">");
+    console.log(messageArr)
     const cmd = messageArr[0];
     const utility = messageArr[1];
     if (message.member.voice.channel === null) {
@@ -109,12 +113,41 @@ client.on('messageCreate',async (message) => {
         client.Distube.skip(message)
       }
     } 
-    // else if (cmd === "#shuffle") {
-    //   client.Distube.shuffle(message)
-    // } 
       else if (cmd === "#spotify") {
-      let apiLink = "https://api.spotify.com/v1/playlists/" + utility.trim();
-      const songArr = await getSpotifyPlaylist(apiLink);
+      //itrate backward to determine if playlist or album
+      let albumRoute = false;
+      let slashCount = 0;
+      let finalApiRoute = "";
+      let trimmedUtility = utility.trim();
+      let pointer = trimmedUtility.length - 1;
+      let apiPointer = ""
+      console.log("before while")
+      console.log(trimmedUtility)
+      console.log(pointer)
+      while (slashCount < 2) {
+        if (trimmedUtility[pointer] === "/") slashCount++;
+        if (slashCount === 1) {
+
+          apiPointer = trimmedUtility[pointer] + apiPointer;
+          if (apiPointer === "album") albumRoute = true;
+        } else if (slashCount === 0) {
+          finalApiRoute = trimmedUtility[pointer] + finalApiRoute;
+        }
+        pointer--;
+      }
+      console.log("after while")
+
+      console.log(finalApiRoute)
+      let songArr;
+      let apiLink;
+      if (albumRoute === false) {
+        apiLink = "https://api.spotify.com/v1/playlists/" + finalApiRoute;
+        songArr = await getSpotifyPlaylist(apiLink);
+      } else {
+        apiLink = "https://api.spotify.com/v1/albums/" + finalApiRoute;
+        songArr = await getSpotifyAlbum(apiLink)
+      }
+     
       let limit = 20;
       if (songArr.length > limit) message.channel.send(`Does not allow playlist longer than ${limit} songs, go make a fucken shorter playlist we not gonna be here for that long`)
       else {
@@ -147,4 +180,3 @@ client.on('messageCreate',async (message) => {
 // client.Distube.on("addSong", (queue, song) => {
 //   queue.textChannel.send(`Added ${song.name} - to the queue by ${song.user}.`)
 // })
-client.login(process.env.TOKEN)
