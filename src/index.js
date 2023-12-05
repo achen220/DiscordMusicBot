@@ -60,7 +60,7 @@ const getSpotifyPlaylist = async (playlistURL) => {
     let allSongsInfo = data.tracks.items;
     const songArr = [];
     for (const song of allSongsInfo) {
-      const basicSongInfo = {artist: []}
+      const basicSongInfo = {artist: []};
       basicSongInfo.songTitle = song.track.album.name
       for (let i = 0; i < song.track.album.artists.length; i++) {
         basicSongInfo.artist.push(song.track.album.artists[i].name) 
@@ -73,8 +73,30 @@ const getSpotifyPlaylist = async (playlistURL) => {
     console.error(`error occurred when fetching spotify playlist: ${error}`)
   }
 }
-const getSpotifyAlbum = async () => {
-
+const getSpotifyAlbum = async (albumURL) => {
+  const token = await getToken();
+  try {
+    const res = await fetch(albumURL, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      json:true
+    });
+    const data = await res.json();
+    let allSongsInfo = data.tracks.items;
+    const songArr = [];
+    for (const song of allSongsInfo) {
+      const basicSongInfo = {artist: []};
+      basicSongInfo.songTitle = song.name;
+      for (let i = 0; i < song.artists.length; i++) {
+        basicSongInfo.artist.push(song.artists[i].name)
+      }
+      songArr.push(basicSongInfo)
+    }
+    return songArr;
+  } catch (error) {
+    console.error(`error occurred when fetching spotify albums: ${error}`)
+  }
 }
 client.on('ready', () => {
   console.log("ready")
@@ -88,7 +110,7 @@ client.on('messageCreate',async (message) => {
   let prefix = "#"
   if (message.content[0] === prefix) {
     const messageArr = message.content.split(">");
-    console.log(messageArr)
+    // console.log(messageArr)
     const cmd = messageArr[0];
     const utility = messageArr[1];
     if (message.member.voice.channel === null) {
@@ -121,32 +143,37 @@ client.on('messageCreate',async (message) => {
       let trimmedUtility = utility.trim();
       let pointer = trimmedUtility.length - 1;
       let apiPointer = ""
-      console.log("before while")
-      console.log(trimmedUtility)
-      console.log(pointer)
+      // console.log("before while")
+      // console.log(trimmedUtility)
+      // console.log(pointer)
       while (slashCount < 2) {
         if (trimmedUtility[pointer] === "/") slashCount++;
         if (slashCount === 1) {
 
           apiPointer = trimmedUtility[pointer] + apiPointer;
-          if (apiPointer === "album") albumRoute = true;
+          // console.log(apiPointer)
+          if (apiPointer === "album/") albumRoute = true;
         } else if (slashCount === 0) {
           finalApiRoute = trimmedUtility[pointer] + finalApiRoute;
         }
         pointer--;
       }
-      console.log("after while")
+      // console.log("after while")
 
-      console.log(finalApiRoute)
+      // console.log(finalApiRoute)
       let songArr;
       let apiLink;
+
       if (albumRoute === false) {
+        // console.log("non album")
         apiLink = "https://api.spotify.com/v1/playlists/" + finalApiRoute;
         songArr = await getSpotifyPlaylist(apiLink);
       } else {
+        // console.log("album")
         apiLink = "https://api.spotify.com/v1/albums/" + finalApiRoute;
         songArr = await getSpotifyAlbum(apiLink)
       }
+      // console.log(songArr)
      
       let limit = 20;
       if (songArr.length > limit) message.channel.send(`Does not allow playlist longer than ${limit} songs, go make a fucken shorter playlist we not gonna be here for that long`)
@@ -169,7 +196,12 @@ client.on('messageCreate',async (message) => {
       ).join("\n"));
     } else if (cmd === "#commands") {
       message.channel.send("no i will not give you the commands")
-    }
+    } 
+    // else if (cmd === "#happy birthday Laurie")
+    //   for (let i = 0; i < 20; i++) {
+    //     message.channel.send("happy birthday Laurie!")
+    //     message.channel.send("marcus is a fake")
+    //   }
   }
 })
 
